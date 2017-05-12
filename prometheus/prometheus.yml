@@ -1,0 +1,41 @@
+global:
+  scrape_interval: 15s
+  labels:
+    monitor: 'iav-central'
+
+rule_files:
+  - 'alert.rules'
+
+scrape_configs:
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          group: 'development'
+
+  - job_name: 'website_check'
+    scrape_interval: 1m
+    metrics_path: '/probe'
+    params:
+      module: [website_probe]
+    static_configs:
+      - targets:
+          - drupal:80 # add more sites here, can be external
+          - docker.com
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: (.*)(:80)?
+        target_label: __param_target
+        replacement: ${1}
+      - source_labels: [__param_target]
+        regex: (.*)
+        target_label: instance
+        replacement: ${1}
+      - source_labels: []
+        regex: .*
+        target_label: __address__
+        replacement: blackbox-exporter:9115  # Blackbox exporter.
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

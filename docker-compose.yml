@@ -1,0 +1,86 @@
+version: '2'
+
+services:
+  # The reverse proxy enables us to serve multiple containers on the same port
+  nginx-proxy:
+    image: jwilder/nginx-proxy:latest
+    container_name: nginx-proxy
+    ports:
+      - 80:80
+    volumes:
+      - /etc/nginx/conf.d
+      - /usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+
+  ######################
+  # Monitoring stack
+  ######################
+  prometheus:
+    image: prom/prometheus:v1.6.2
+    command:
+      - '-config.file=/etc/prometheus/prometheus.yml'
+      - '-alertmanager.url=http://alertmanager:9093'
+    volumes:
+      - /prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alert.rules:/etc/prometheus/alert.rules
+    environment:
+      - VIRTUAL_HOST=prometheus.meetup.local
+      - VIRTUAL_PORT=9090
+
+  alertmanager:
+    image: prom/alertmanager:v0.5.1
+    command:
+      - '-config.file=/alertmanager.yml'
+    volumes:
+      - ./alertmanager/alertmanager.yml:/alertmanager.yml
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.5.0
+    command: -config.file=/config/config.yml
+    volumes:
+      - ./blackbox_exporter:/config
+
+  grafana:
+    image: grafana/grafana:4.2.0
+    restart: always
+    volumes:
+      - /var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=docker
+      - VIRTUAL_HOST=grafana.meetup.local
+      - VIRTUAL_PORT=3000
+
+  cadvisor:
+    image: google/cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+    environment:
+      - VIRTUAL_HOST=cadvisor.meetup.local
+      - VIRTUAL_PORT=8080
+
+  ######################
+  # Demo applications
+  ######################
+  blog:
+    image: ghost:alpine
+    environment:
+      - VIRTUAL_HOST=blog.meetup.local
+      - VIRTUAL_PORT=2360
+    volumes:
+      - /var/lib/ghost
+    labels:
+      local.meetup.type: "website"
+
+  drupal:
+    image: drupal:8
+    environment:
+      - VIRTUAL_HOST=drupal.meetup.local
+    volumes:
+      - /var/www/html/sites
+    labels:
+      local.meetup.type: "website"

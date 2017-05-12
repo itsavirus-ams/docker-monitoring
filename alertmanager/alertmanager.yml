@@ -1,0 +1,15 @@
+# alertmanager.yml
+route:
+  group_interval: 1m
+  repeat_interval: 1m
+  receiver: slack
+
+receivers:
+  - name: slack
+    slack_configs:
+      - send_resolved: true
+        text: "{{ range .Alerts }}- {{ .Annotations.description }}\n{{ end }}"
+        username: 'Demo'
+        channel: '#monitoring-meetup'
+        api_url: 'https://hooks.slack.com/services/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'
+        title_link: "grafana.meetup.local"

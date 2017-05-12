@@ -1,0 +1,12 @@
+modules:
+  website_probe:
+    prober: http
+    timeout: 8s
+    http:
+      valid_status_codes: [200] # Default to 2xx
+      method: GET
+      no_follow_redirects: false
+      fail_if_ssl: false
+      fail_if_not_ssl: false
+      protocol: "tcp"
+      preferred_ip_protocol: "ip4"

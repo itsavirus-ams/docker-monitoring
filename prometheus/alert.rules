@@ -1,0 +1,31 @@
+ALERT instance_down
+  IF up == 0
+  FOR 5m
+  LABELS { severity = "page" }
+  ANNOTATIONS {
+    summary = "Instance {{$labels.host}} is down",
+    description = "{{$labels.host}} of job {{$labels.job}} has been down for more than 5 minutes"
+  }
+
+ALERT website_down
+  IF probe_success == 0
+  FOR 1m
+  LABELS { severity = "page" }
+  ANNOTATIONS {
+    summary = "Website {{$labels.instance}} is down",
+    description = "The probe for {{$labels.instance}} was unsuccessful"
+  }
+
+ALERT container_stopped
+  IF time() - container_last_seen{image=~"registry.gitlab.iavconcepts.com:5500/.*"} > 60 * 5
+  LABELS { severity = "page" }
+  ANNOTATIONS {
+    summary = "Container {{$labels.image}} stopped",
+    description = "Container {{$labels.image}} has been stopped on {{$labels.host}}"
+  }
+
+ALERT instance_low_disk
+  IF (container_fs_limit_bytes{device="overlay"} - container_fs_usage_bytes{device="overlay"}) < 2000000000
+  ANNOTATIONS {
+    description = "*Instance {{$labels.host}} has low disk space* (< 2gb free)"
+  }

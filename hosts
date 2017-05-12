@@ -1,0 +1,11 @@
+###########################################
+# START - Docker monitoring example hosts #
+###########################################
+127.0.0.1   grafana.meetup.local
+127.0.0.1   prometheus.meetup.local
+127.0.0.1   cadvisor.meetup.local
+127.0.0.1   blog.meetup.local
+127.0.0.1   drupal.meetup.local
+###########################################
+# END - Docker monitoring example hosts   #
+###########################################
